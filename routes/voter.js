@@ -32,6 +32,7 @@ router.post("/login", async (req, res) => {
         boothId: voter.boothId,
         constituencyId: voter.constituencyId,
         voted: voter.voted,
+        votedAt: voter.votedAt,
       },
     });
   } catch (err) {
