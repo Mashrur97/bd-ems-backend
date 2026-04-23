@@ -71,7 +71,8 @@ router.post("/vote", auth, async (req, res) => {
 
     await AuditLog.create({ event: `Voter cast vote (NID ending ${voter.nid.slice(-4)})` });
 
-    res.json({ message: "Vote cast successfully", voted: true });
+    //res.json({ message: "Vote cast successfully", voted: true });
+    res.json({ message: "Vote cast successfully", voted: true, votedAt: voter.votedAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
