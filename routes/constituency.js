@@ -26,6 +26,18 @@ router.post("/compile", auth, async (req, res) => {
     const constituency = await Constituency.findOne({ constituencyId: officer.constituencyId });
     if (!constituency) return res.status(404).json({ message: "Constituency not found" });
 
+    const Station = require("../models/Station");
+    const verifiedStations = await Station.find({ 
+      constituencyId: officer.constituencyId, 
+      verified: true 
+    });
+
+    if (verifiedStations.length === 0) {
+      return res.status(400).json({ message: "No stations verified. At least one station must be verified before compiling." });
+    }
+
+    if (constituency.compiled) return res.status(409).json({ message: "Constituency already compiled" });
+
     constituency.compiled = true;
     constituency.compiledBy = req.user.name;
     constituency.compiledAt = new Date();
@@ -36,6 +48,7 @@ router.post("/compile", auth, async (req, res) => {
 
     res.json({ message: "Constituency compiled", constituency });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
