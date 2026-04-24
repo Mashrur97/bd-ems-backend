@@ -70,11 +70,29 @@ async function seed() {
   console.log("Seeded booths");
 
   // Voters
-  await Voter.insertMany([
-    { nid: "1234567890123", name: "Mohammad Alam",  dob: "1985-03-12", district: "Dhaka",      boothId: 1, constituencyId: 1, voted: false },
+  const voters = [
+    { nid: "1234567890123", name: "Mohammad Alam",  dob: "2006-01-01", district: "Dhaka",      boothId: 1, constituencyId: 1, voted: false },
     { nid: "9876543210123", name: "Fatema Begum",   dob: "1990-07-22", district: "Chittagong", boothId: 2, constituencyId: 1, voted: false },
     { nid: "1111222233334", name: "Rahim Khan",     dob: "1978-11-05", district: "Rajshahi",   boothId: 3, constituencyId: 1, voted: false },
-  ]);
+    { nid: "2222333344445", name: "Ayesha Rahman", dob: "1992-04-18", district: "Dhaka",      boothId: 1, constituencyId: 1, voted: false },
+    { nid: "3333444455556", name: "Mahbubur Ali",    dob: "1980-09-25", district: "Sylhet",      boothId: 2, constituencyId: 1, voted: false },
+    { nid: "4444555566667", name: "Salma Khatun",   dob: "1988-12-30", district: "Dhaka",      boothId: 3, constituencyId: 1, voted: false },
+    { nid: "5555666677778", name: "Ahmed Hassan",   dob: "1975-06-14", district: "Comilla",    boothId: 4, constituencyId: 1, voted: false },
+    { nid: "6666777788889", name: "Nila Islam",     dob: "1995-02-08", district: "Barisal",   boothId: 5, constituencyId: 1, voted: false },
+    { nid: "7777888899990", name: "Jamal Uddin",    dob: "1983-10-22", district: "Dhaka",      boothId: 6, constituencyId: 1, voted: false },
+    { nid: "8888999900001", name: "Parvin Begum",  dob: "1991-05-17", district: "Khulna",    boothId: 7, constituencyId: 1, voted: false },
+    { nid: "9999000011112", name: "Khalil Mia",    dob: "1977-08-03", district: "Dhaka",      boothId: 8, constituencyId: 1, voted: false },
+    { nid: "1000111122223", name: "Rashida Akter",  dob: "1993-11-28", district: "Tangail",   boothId: 1, constituencyId: 1, voted: false },
+    { nid: "2111222233335", name: "Sirajul Islam",   dob: "1986-03-09", district: "Dhaka",      boothId: 2, constituencyId: 1, voted: false },
+    { nid: "3222333344446", name: "Jamila Begum",  dob: "1989-07-21", district: "Mymensingh", boothId: 3, constituencyId: 1, voted: false },
+    { nid: "4333444455557", name: "Babul Ahmed",   dob: "1979-01-15", district: "Dhaka",      boothId: 4, constituencyId: 1, voted: false },
+    { nid: "5444555566668", name: "Sumon Islam",   dob: "1994-09-05", district: "Gopalganj", boothId: 5, constituencyId: 1, voted: false },
+    { nid: "6555666677779", name: "Mina Begum",    dob: "1987-04-12", district: "Dhaka",      boothId: 6, constituencyId: 1, voted: false },
+    { nid: "7666777788880", name: "Razu Khan",     dob: "1982-12-19", district: "Narayanganj", boothId: 7, constituencyId: 1, voted: false },
+    { nid: "8777888899991", name: "Shamim Akter",  dob: "1990-06-26", district: "Dhaka",      boothId: 8, constituencyId: 1, voted: false },
+    { nid: "9888999900002", name: "Altaf Hossain", dob: "1984-10-11", district: "Savar",     boothId: 1, constituencyId: 1, voted: false },
+  ];
+  await Voter.insertMany(voters);
   console.log("Seeded voters");
 
   // Officers — store raw pin, pre-save hook hashes it
@@ -110,10 +128,11 @@ async function seed() {
   ]);
   console.log("Seeded fraud flags");
 
-  // Initial Incidents
+  // Initial Incidents — stationId matches PO001's station (1 and 2)
   await Incident.insertMany([
-    { center: "Motijheel Govt. School", type: "EVM Malfunction",        desc: "EVM in Booth A-3 stalled — resolved in 12 min",          status: "resolved", createdAt: new Date("2026-01-01T09:14:00Z") },
-    { center: "Farmgate Model School",  type: "Identity Fraud Attempt", desc: "Voter attempted to cast vote with another's NID",         status: "active",   createdAt: new Date("2026-01-01T10:42:00Z") },
+    { center: "Motijheel Govt. School", stationId: 1, type: "EVM Malfunction",        desc: "EVM in Booth A-3 stalled — resolved in 12 min",          status: "resolved", createdAt: new Date("2026-01-01T09:14:00Z") },
+    { center: "Motijheel Govt. School", stationId: 1, type: "Crowd Disturbance",     desc: "Large queue forming at peak hours",                        status: "active",   createdAt: new Date("2026-01-01T10:42:00Z") },
+    { center: "Farmgate Model School",  stationId: 2, type: "Identity Fraud Attempt", desc: "Voter attempted to cast vote with another's NID",         status: "active",   createdAt: new Date("2026-01-01T10:42:00Z") },
   ]);
   console.log("Seeded incidents");
 
