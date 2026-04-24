@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const Voter = require("../models/Voter");
+const Booth = require("../models/Booth");
 const Candidate = require("../models/Candidate");
 const AuditLog = require("../models/AuditLog");
 const auth = require("../middleware/auth");
@@ -72,7 +73,6 @@ router.post("/vote", auth, async (req, res) => {
 
     await AuditLog.create({ event: `Voter cast vote (NID ending ${voter.nid.slice(-4)})` });
 
-    //res.json({ message: "Vote cast successfully", voted: true });
     res.json({ message: "Vote cast successfully", voted: true, votedAt: voter.votedAt });
   } catch (err) {
     console.error(err);
@@ -88,6 +88,29 @@ router.get("/me", auth, async (req, res) => {
     if (!voter) return res.status(404).json({ message: "Voter not found" });
     res.json({ voter });
   } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET /api/voter/list — get voters by stationId (protected, officer only)
+router.get("/list", auth, async (req, res) => {
+  try {
+    if (!["apo", "po", "aro", "ro"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Officers only" });
+    }
+    const { stationId } = req.query;
+    if (!stationId) return res.status(400).json({ message: "stationId required" });
+
+    const booths = await Booth.find({ stationId: Number(stationId) }).select("boothId");
+    const boothIds = booths.map(b => b.boothId);
+
+    const voters = await Voter.find({ boothId: { $in: boothIds } })
+      .select("name nid boothId voted votedAt")
+      .sort({ boothId: 1, name: 1 });
+
+    res.json({ voters });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
