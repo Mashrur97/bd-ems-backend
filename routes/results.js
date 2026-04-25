@@ -31,6 +31,8 @@ router.get("/public", async (req, res) => {
       turnout,
       eligibleVoters,
       resultsDeclared: state?.resultsDeclared || false,
+      declaredBy: state?.declaredBy || null,
+      declaredAt: state?.declaredAt || null,
       constituencyCompiled: state?.constituencyCompiled || false,
       fraudFlags,
     });
