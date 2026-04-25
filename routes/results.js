@@ -45,10 +45,28 @@ router.post("/declare", auth, async (req, res) => {
   try {
     if (req.user.role !== "ro") return res.status(403).json({ message: "RO only" });
 
+    const Officer = require("../models/Officer");
+    const Constituency = require("../models/Constituency");
+    
+    const officer = await Officer.findById(req.user.id);
     const state = await ElectionState.findOne();
     if (!state?.constituencyCompiled) {
       return res.status(400).json({ message: "Constituency must be compiled by ARO first" });
     }
+
+    const constituency = await Constituency.findOne({ constituencyId: officer.constituencyId });
+    if (!constituency?.compiled) {
+      return res.status(403).json({ message: "Constituency must be compiled before declaration" });
+    }
+    if (constituency.declared) {
+      return res.status(409).json({ message: "Results already declared" });
+    }
+
+    // Mark constituency as declared
+    constituency.declared = true;
+    constituency.declaredBy = req.user.name;
+    constituency.declaredAt = new Date();
+    await constituency.save();
 
     await ElectionState.updateOne({}, {
       $set: {
@@ -58,10 +76,11 @@ router.post("/declare", auth, async (req, res) => {
       },
     });
 
-    await AuditLog.create({ event: `RO ${req.user.name} officially declared results` });
+    await AuditLog.create({ event: `RO ${req.user.name} officially declared results for ${constituency.name}` });
 
-    res.json({ message: "Results declared successfully" });
+    res.json({ message: "Results declared successfully", constituency });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
