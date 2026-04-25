@@ -79,6 +79,17 @@ router.post("/submit", auth, async (req, res) => {
     booth.submittedAt = new Date();
     await booth.save();
 
+    // Increment candidate vote totals
+    for (const [candidateId, votes] of Object.entries(candidateVotes)) {
+      const voteCount = Number(votes) || 0;
+      if (voteCount > 0) {
+        await Candidate.findOneAndUpdate(
+          { candidateId: Number(candidateId) },
+          { $inc: { votes: voteCount } }
+        );
+      }
+    }
+
     await AuditLog.create({ event: `${req.user.name} submitted Booth ${booth.name} results` });
 
     res.json({ message: "Booth submitted successfully", booth });
