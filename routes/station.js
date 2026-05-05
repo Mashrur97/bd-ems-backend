@@ -46,15 +46,14 @@ router.post("/verify", auth, async (req, res) => {
       return res.status(400).json({ message: "Station has no booths. Cannot verify." });
     }
 
-    // Check submission status
+    // All booths must be submitted before the station can be verified
     const submittedBooths = booths.filter(b => b.submitted).length;
     const totalBooths = booths.length;
-    const allSubmitted = submittedBooths === totalBooths;
 
-    // If not all submitted, warn but allow proceed
-    if (!allSubmitted) {
-      // Log warning in response but proceed
-      console.warn(`PO ${req.user.name} verified station with ${submittedBooths}/${totalBooths} booths submitted`);
+    if (submittedBooths !== totalBooths) {
+      return res.status(400).json({ 
+        message: `Cannot verify: ${submittedBooths}/${totalBooths} booths submitted. All booths must be submitted first.` 
+      });
     }
 
     station.verified = true;
@@ -64,14 +63,10 @@ router.post("/verify", auth, async (req, res) => {
     await station.save();
 
     await AuditLog.create({ 
-      event: `PO ${req.user.name} verified station: ${station.name} (${submittedBooths}/${totalBooths} booths submitted)` 
+      event: `PO ${req.user.name} verified station: ${station.name} (${totalBooths}/${totalBooths} booths submitted)` 
     });
 
-    res.json({ 
-      message: "Station verified", 
-      station,
-      warning: !allSubmitted ? `Only ${submittedBooths} of ${totalBooths} booths submitted` : null
-    });
+    res.json({ message: "Station verified", station });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

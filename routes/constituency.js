@@ -21,7 +21,6 @@ router.post("/compile", auth, async (req, res) => {
     if (req.user.role !== "aro") return res.status(403).json({ message: "ARO only" });
 
     const Officer = require("../models/Officer");
-    const Booth = require("../models/Booth");
     const officer = await Officer.findById(req.user.id);
 
     const constituency = await Constituency.findOne({ constituencyId: officer.constituencyId });
@@ -39,24 +38,14 @@ router.post("/compile", auth, async (req, res) => {
 
     if (constituency.compiled) return res.status(409).json({ message: "Constituency already compiled" });
 
-    // Get all submitted booths from verified stations
-    const verifiedStationIds = verifiedStations.map(s => s.stationId);
-    const submittedBooths = await Booth.find({ 
-      stationId: { $in: verifiedStationIds }, 
-      submitted: true 
-    });
+    const Candidate = require("../models/Candidate");
 
-    // Aggregate candidate votes across all submitted booths
+    // Pull vote totals from Candidate collection — single source of truth
+    // (these are incremented live as APOs submit booths)
+    const candidates = await Candidate.find();
     const aggregatedVotes = {};
-    submittedBooths.forEach(booth => {
-      const cv = booth.candidateVotes;
-      if (cv) {
-        const votes = cv instanceof Map ? Object.fromEntries(cv) : cv;
-        Object.entries(votes).forEach(([candId, count]) => {
-          const candidateId = Number(candId);
-          aggregatedVotes[candidateId] = (aggregatedVotes[candidateId] || 0) + Number(count);
-        });
-      }
+    candidates.forEach(c => {
+      aggregatedVotes[c.candidateId] = c.votes;
     });
 
     constituency.compiled = true;
@@ -66,7 +55,7 @@ router.post("/compile", auth, async (req, res) => {
     await constituency.save();
 
     await ElectionState.updateOne({}, { $set: { constituencyCompiled: true } });
-    await AuditLog.create({ event: `ARO ${req.user.name} compiled constituency: ${constituency.name} with ${submittedBooths.length} submitted booths` });
+    await AuditLog.create({ event: `ARO ${req.user.name} compiled constituency: ${constituency.name}` });
 
     res.json({ message: "Constituency compiled", constituency });
   } catch (err) {
