@@ -34,10 +34,10 @@ async function seed() {
 
   // Candidates
   await Candidate.insertMany([
-    { candidateId: 1, name: "Farida Khanam",  party: "Awami League", symbol: "🚢", color: "#2471a3", votes: 2341 },
-    { candidateId: 2, name: "Kamal Hossain",  party: "BNP",          symbol: "🌾", color: "#922b21", votes: 1987 },
-    { candidateId: 3, name: "Rina Akter",     party: "Jatiya Party", symbol: "⚙️", color: "#1e8449", votes: 876 },
-    { candidateId: 4, name: "Zahir Uddin",    party: "Independent",  symbol: "⭐", color: "#7d3c98", votes: 432 },
+    { candidateId: 1, name: "Farida Khanam",  party: "Awami League", symbol: "🚢", color: "#2471a3", votes: 0 },
+    { candidateId: 2, name: "Kamal Hossain",  party: "BNP",          symbol: "🌾", color: "#922b21", votes: 0 },
+    { candidateId: 3, name: "Rina Akter",     party: "Jatiya Party", symbol: "⚙️", color: "#1e8449", votes: 0 },
+    { candidateId: 4, name: "Zahir Uddin",    party: "Independent",  symbol: "⭐", color: "#7d3c98", votes: 0 },
   ]);
   console.log("Seeded candidates");
 
@@ -51,7 +51,7 @@ async function seed() {
   // Stations
   await Station.insertMany([
     { stationId: 1, name: "Motijheel Govt. School",      constituencyId: 1, booths: [1, 2, 3, 4], verified: false, submitted: false },
-    { stationId: 2, name: "Farmgate Model High School",  constituencyId: 1, booths: [5, 6],       verified: true,  submitted: true  },
+    { stationId: 2, name: "Farmgate Model High School",  constituencyId: 1, booths: [5, 6],       verified: false, submitted: false },
     { stationId: 3, name: "Gulshan Ideal School",        constituencyId: 1, booths: [7, 8],       verified: false, submitted: false },
   ]);
   console.log("Seeded stations");
@@ -62,8 +62,8 @@ async function seed() {
     { boothId: 2, name: "Booth A-2", stationId: 1, issued: 820,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
     { boothId: 3, name: "Booth A-3", stationId: 1, issued: 790,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
     { boothId: 4, name: "Booth A-4", stationId: 1, issued: 810,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
-    { boothId: 5, name: "Booth B-1", stationId: 2, issued: 760,  used: 580, candidateVotes: { "1": 250, "2": 190, "3": 88, "4": 52 }, submitted: true,  flagged: false },
-    { boothId: 6, name: "Booth B-2", stationId: 2, issued: 800,  used: 612, candidateVotes: { "1": 280, "2": 175, "3": 101,"4": 56 }, submitted: true,  flagged: false },
+    { boothId: 5, name: "Booth B-1", stationId: 2, issued: 760,  used: 0, candidateVotes: { "1": 0, "2": 0, "3": 0, "4": 0 }, submitted: false, flagged: false },
+    { boothId: 6, name: "Booth B-2", stationId: 2, issued: 800,  used: 0, candidateVotes: { "1": 0, "2": 0, "3": 0, "4": 0 }, submitted: false, flagged: false },
     { boothId: 7, name: "Booth C-1", stationId: 3, issued: 700,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
     { boothId: 8, name: "Booth C-2", stationId: 3, issued: 720,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
   ]);
@@ -114,19 +114,12 @@ async function seed() {
 
   // Initial Audit Log
   await AuditLog.insertMany([
-    { event: "Election polling opened nationally",         createdAt: new Date("2026-01-01T07:00:00Z") },
-    { event: "APO001 submitted Booth B-1 results",        createdAt: new Date("2026-01-01T08:14:22Z") },
-    { event: "APO001 submitted Booth B-2 results",        createdAt: new Date("2026-01-01T08:45:11Z") },
-    { event: "PO Farmgate verified station result",       createdAt: new Date("2026-01-01T09:02:33Z") },
+    { event: "Election polling opened nationally", createdAt: new Date("2026-01-01T07:00:00Z") },
   ]);
   console.log("Seeded audit log");
 
-  // Initial Fraud Flags
-  await FraudFlag.insertMany([
-    { booth: "Booth B-1", station: "Farmgate",   issue: "Vote count 8% below baseline",            severity: "low"  },
-    { booth: "Booth A-4", station: "Motijheel",  issue: "Entered count exceeds issued ballots",     severity: "high" },
-  ]);
-  console.log("Seeded fraud flags");
+  // No initial fraud flags — clean slate
+
 
   // Initial Incidents — stationId matches PO001's station (1 and 2)
   await Incident.insertMany([

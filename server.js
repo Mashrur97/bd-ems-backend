@@ -14,7 +14,7 @@ app.use(cors({
   ],
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use("/api/voter",         require("./routes/voter"));
@@ -25,6 +25,7 @@ app.use("/api/constituency",  require("./routes/constituency"));
 app.use("/api/results",       require("./routes/results"));
 app.use("/api/audit",         require("./routes/audit"));
 app.use("/api/incidents",     require("./routes/incidents"));
+app.use("/api/reports",       require("./routes/report"));
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => res.json({ status: "EMS API running" }));
