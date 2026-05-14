@@ -26,6 +26,7 @@ app.use("/api/results",       require("./routes/results"));
 app.use("/api/audit",         require("./routes/audit"));
 app.use("/api/incidents",     require("./routes/incidents"));
 app.use("/api/reports",       require("./routes/report"));
+app.use("/api/dev",           require("./routes/dev"));
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => res.json({ status: "EMS API running" }));

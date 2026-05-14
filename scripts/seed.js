@@ -12,6 +12,7 @@ const ElectionState = require("../models/ElectionState");
 const AuditLog = require("../models/AuditLog");
 const FraudFlag = require("../models/FraudFlag");
 const Incident = require("../models/Incident");
+const Report = require("../models/Report");
 
 async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
@@ -29,6 +30,7 @@ async function seed() {
     AuditLog.deleteMany({}),
     FraudFlag.deleteMany({}),
     Incident.deleteMany({}),
+    Report.deleteMany({}),
   ]);
   console.log("Cleared existing data");
 
@@ -37,7 +39,7 @@ async function seed() {
     { candidateId: 1, name: "Farida Khanam",  party: "Awami League", symbol: "🚢", color: "#2471a3", votes: 0 },
     { candidateId: 2, name: "Kamal Hossain",  party: "BNP",          symbol: "🌾", color: "#922b21", votes: 0 },
     { candidateId: 3, name: "Rina Akter",     party: "Jatiya Party", symbol: "⚙️", color: "#1e8449", votes: 0 },
-    { candidateId: 4, name: "Zahir Uddin",    party: "Independent",  symbol: "⭐", color: "#7d3c98", votes: 0 },
+    { candidateId: 4, name: "Zahir Uddin",    party: "Free Biriyani Party",  symbol: "🍛", color: "#7d3c98", votes: 0 },
   ]);
   console.log("Seeded candidates");
 
@@ -62,8 +64,8 @@ async function seed() {
     { boothId: 2, name: "Booth A-2", stationId: 1, issued: 820,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
     { boothId: 3, name: "Booth A-3", stationId: 1, issued: 790,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
     { boothId: 4, name: "Booth A-4", stationId: 1, issued: 810,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
-    { boothId: 5, name: "Booth B-1", stationId: 2, issued: 760,  used: 0, candidateVotes: { "1": 0, "2": 0, "3": 0, "4": 0 }, submitted: false, flagged: false },
-    { boothId: 6, name: "Booth B-2", stationId: 2, issued: 800,  used: 0, candidateVotes: { "1": 0, "2": 0, "3": 0, "4": 0 }, submitted: false, flagged: false },
+    { boothId: 5, name: "Booth B-1", stationId: 2, issued: 760, used: 0, candidateVotes: { "1": 0, "2": 0, "3": 0, "4": 0 }, submitted: false, flagged: false },
+    { boothId: 6, name: "Booth B-2", stationId: 2, issued: 800, used: 0, candidateVotes: { "1": 0, "2": 0, "3": 0, "4": 0 }, submitted: false, flagged: false },
     { boothId: 7, name: "Booth C-1", stationId: 3, issued: 700,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
     { boothId: 8, name: "Booth C-2", stationId: 3, issued: 720,  used: 0,   candidateVotes: { "1": 0,   "2": 0,   "3": 0,  "4": 0  }, submitted: false, flagged: false },
   ]);
@@ -120,7 +122,6 @@ async function seed() {
 
   // No initial fraud flags — clean slate
 
-
   // Initial Incidents — stationId matches PO001's station (1 and 2)
   await Incident.insertMany([
     { center: "Motijheel Govt. School", stationId: 1, type: "EVM Malfunction",        desc: "EVM in Booth A-3 stalled — resolved in 12 min",          status: "resolved", createdAt: new Date("2026-01-01T09:14:00Z") },
@@ -128,6 +129,41 @@ async function seed() {
     { center: "Farmgate Model School",  stationId: 2, type: "Identity Fraud Attempt", desc: "Voter attempted to cast vote with another's NID",         status: "active",   createdAt: new Date("2026-01-01T10:42:00Z") },
   ]);
   console.log("Seeded incidents");
+
+  // Seeded citizen reports
+  await Report.insertMany([
+    {
+      voterId:     "000000000000000000000001",
+      voterName:   "Nila Islam",
+      description: "An agent near the entrance is telling elderly voters which candidate to pick before they go in. Happened to at least 3 people I saw.",
+      location:    "Motijheel Govt. School, Main Gate",
+      photo:       null,
+      upvotes:     14,
+      upvotedBy:   [],
+      createdAt:   new Date("2026-01-01T09:10:00Z"),
+    },
+    {
+      voterId:     "000000000000000000000002",
+      voterName:   "Jamal Uddin",
+      description: "The assistance booth has only one party's volunteers. No one else is allowed to help voters. Center staff are ignoring complaints.",
+      location:    "Farmgate Model High School, Room 2",
+      photo:       null,
+      upvotes:     9,
+      upvotedBy:   [],
+      createdAt:   new Date("2026-01-01T09:45:00Z"),
+    },
+    {
+      voterId:     "000000000000000000000003",
+      voterName:   "Rashida Akter",
+      description: "Saw a group of men outside harassing people who came out after voting. Asking who they voted for.",
+      location:    "Gulshan Ideal School, Back Exit",
+      photo:       null,
+      upvotes:     14,
+      upvotedBy:   [],
+      createdAt:   new Date("2026-01-01T10:20:00Z"),
+    },
+  ]);
+  console.log("Seeded reports");
 
   console.log("\n✅ Seed complete!");
   process.exit(0);
