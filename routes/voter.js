@@ -5,10 +5,10 @@ const Voter = require("../models/Voter");
 const Booth = require("../models/Booth");
 const Candidate = require("../models/Candidate");
 const AuditLog = require("../models/AuditLog");
+const Station = require("../models/Station");
 const auth = require("../middleware/auth");
 
 // POST /api/voter/login
-// Body: { nid, dob }  — dob as "YYYY-MM-DD"
 router.post("/login", async (req, res) => {
   try {
     const { nid, dob } = req.body;
@@ -17,6 +17,8 @@ router.post("/login", async (req, res) => {
     const voter = await Voter.findOne({ nid });
     if (!voter) return res.status(404).json({ message: "Voter not found. Check your NID." });
     if (voter.dob !== dob) return res.status(401).json({ message: "Date of birth does not match." });
+
+    const station = await Station.findOne({ booths: voter.boothId });
 
     const token = jwt.sign(
       { id: voter._id, nid: voter.nid, role: "voter" },
@@ -34,6 +36,7 @@ router.post("/login", async (req, res) => {
         constituencyId: voter.constituencyId,
         voted: voter.voted,
         votedAt: voter.votedAt,
+        stationName: station ? station.name : "Not assigned",
       },
     });
   } catch (err) {
@@ -43,8 +46,6 @@ router.post("/login", async (req, res) => {
 });
 
 // POST /api/voter/vote
-// Body: { candidateId }
-// Protected — requires voter JWT
 router.post("/vote", auth, async (req, res) => {
   try {
     if (req.user.role !== "voter") return res.status(403).json({ message: "Only voters can cast votes" });
@@ -59,13 +60,11 @@ router.post("/vote", auth, async (req, res) => {
     const candidate = await Candidate.findOne({ candidateId: Number(candidateId) });
     if (!candidate) return res.status(404).json({ message: "Candidate not found" });
 
-    // Mark voter as voted
     voter.voted = true;
     voter.votedAt = new Date();
     voter.votedCandidate = candidateId;
     await voter.save();
 
-    // Increment candidate vote count
     await Candidate.findOneAndUpdate(
       { candidateId: Number(candidateId) },
       { $inc: { votes: 1 } }
@@ -80,7 +79,7 @@ router.post("/vote", auth, async (req, res) => {
   }
 });
 
-// GET /api/voter/me — get current voter status (voted or not)
+// GET /api/voter/me
 router.get("/me", auth, async (req, res) => {
   try {
     if (req.user.role !== "voter") return res.status(403).json({ message: "Forbidden" });
@@ -92,7 +91,7 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-// GET /api/voter/list — get voters by stationId (protected, officer only)
+// GET /api/voter/list
 router.get("/list", auth, async (req, res) => {
   try {
     if (!["apo", "po", "aro", "ro"].includes(req.user.role)) {
