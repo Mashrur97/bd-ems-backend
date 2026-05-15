@@ -113,5 +113,27 @@ router.get("/list", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// GET /api/voter/search?nid=... — public booth lookup
+router.get("/search", async (req, res) => {
+  try {
+    const { nid } = req.query;
+    if (!nid) return res.status(400).json({ message: "NID required" });
 
+    const voter = await Voter.findOne({ nid });
+    if (!voter) return res.status(404).json({ message: "No voter found with this NID." });
+
+    const station = await Station.findOne({ booths: voter.boothId });
+
+    res.json({
+      name: voter.name,
+      district: voter.district,
+      constituencyId: voter.constituencyId,
+      boothId: voter.boothId,
+      stationName: station ? station.name : "Not assigned",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = router;
